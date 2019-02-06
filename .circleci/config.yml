@@ -1,0 +1,117 @@
+version: 2
+jobs:
+  build_backend:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~
+    steps:
+      - checkout
+      - run:
+          name: Install backend project dependencies
+          command: |
+            cd pomodoro-app/backend
+            npm install
+      - persist_to_workspace:
+          root: .
+          paths:
+            - pomodoro-app/
+  test_backend:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test
+          command: |
+            cd pomodoro-app/backend
+            npm test
+  deploy_backend:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install Serverless Framework globally
+          command: |
+            sudo npm install serverless -g
+      - run:
+          name: Deploy
+          command: |
+            cd pomodoro-app/backend
+            serverless deploy --stage $CIRCLE_BRANCH
+      - run:
+          name: Save Stack.json
+          command: |
+            cd pomodoro-app/backend && echo "{ \"ServiceEndpoint\": \"$(serverless info --stage=$CIRCLE_BRANCH --verbose | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g)\" }" > ../frontend/src/stack.json
+            cat ../frontend/src/stack.json
+      - persist_to_workspace:
+          root: .
+          paths:
+            - pomodoro-app/
+  build_and_test_frontend:
+    docker:
+      - image: circleci/node:10.0.0
+    working_directory: ~
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install frontend project dependencies
+          command: |
+            cd pomodoro-app/frontend
+            npm install
+      - run:
+          name: Test frontend project
+          command: |
+            cd pomodoro-app/frontend
+            npm test
+      - run:
+          name: Build frontend project
+          command: |
+            cd pomodoro-app/frontend
+            cat src/stack.json
+            npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - pomodoro-app/
+  frontend_deploy:
+    docker:
+      - image: circleci/python:2.7-jessie
+    working_directory: ~
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Deploy frontend project
+          command: |
+            aws s3 sync ./pomodoro-app/frontend/build s3://sls-circleci-test-$CIRCLE_BRANCH --acl public-read
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build_backend
+      - test_backend:
+          requires:
+            - build_backend
+      - deploy_backend:
+          requires:
+            - test_backend
+      - build_and_test_frontend:
+          requires:
+            - deploy_backend
+      - frontend_deploy:
+          requires:
+            - deploy_backend
+            - build_and_test_frontend

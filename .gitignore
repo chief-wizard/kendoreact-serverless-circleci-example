@@ -1,0 +1,4 @@
+node_modules
+.serverless
+frontend/src/stack.json
+.DS_Store

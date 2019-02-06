@@ -1,0 +1,40 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.arrow-right {
+  width: 0; 
+  height: 0; 
+  margin-left: 10px;
+
+  border-top: 30px solid transparent;
+  border-bottom: 30px solid transparent;
+  border-left: 30px solid white;
+}
+
+.circle {
+  background-color: #53D2FA;
+  border-radius: 50%;
+  padding-top: 0px;
+  width: 120px;
+  height: 120px;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid {
+  margin-top: 30px;
+}

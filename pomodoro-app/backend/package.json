@@ -1,0 +1,14 @@
+{
+  "name": "serverless-kendo-pomodoro-backend",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "aws-sdk": "^2.357.0",
+    "serverless-stack-output": "^0.2.3"
+  },
+  "scripts": {
+    "deploy": "serverless deploy",
+    "test": "echo PASS"
+  },
+  "author": "Rafal Wilinski"
+}
